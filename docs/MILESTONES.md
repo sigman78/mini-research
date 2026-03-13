@@ -4,7 +4,7 @@
 |---|-----------|--------|-------------|
 | M1 | **Project Scaffold** | done | pyproject.toml, src layout, stub modules, CLI entry, smoke tests |
 | M2 | **LLM Module** | done | LiteLLM wrapper, Pydantic config, cost tracker, async interface |
-| M3 | **Search & Scrape Layer** | done | Abstract interfaces, DuckDuckGo/Brave/Reddit search, trafilatura/Jina scrapers, rate limiting |
+| M3 | **Search & Scrape Layer** | done | DuckDuckGo/Brave/Reddit(stub) search + trafilatura/Jina scrape; provider protocols, routers, CLI sub-apps, 20 unit tests |
 | M4 | **State & Working Memory** | - | ResearchState (Pydantic), WorkingMemory class, citation tracking |
 | M5 | **Agent Implementations** | - | Planner, Evaluator, Reporter — async callables with prompt files, mock-LLM unit tests |
 | M6 | **LangGraph Orchestration** | - | graph.py with evaluation loop, pipeline integration tests (VCR + mock LLM) |
