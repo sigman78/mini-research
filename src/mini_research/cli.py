@@ -5,10 +5,16 @@ from rich.console import Console
 
 from mini_research.config import Settings
 from mini_research.llm import CostTracker, Message, complete
+from mini_research.scrape import ScrapeError, scrape
+from mini_research.search import SearchError, search
 
 app = typer.Typer()
 llm_app = typer.Typer()
 app.add_typer(llm_app, name="llm")
+search_app = typer.Typer()
+scrape_app = typer.Typer()
+app.add_typer(search_app, name="search")
+app.add_typer(scrape_app, name="scrape")
 console = Console()
 
 
@@ -41,3 +47,35 @@ def chat(
 def models() -> None:
     settings = Settings()
     console.print(f"Configured model: [bold]{settings.litellm_model}[/bold]")
+
+
+@search_app.command()
+def search_cmd(
+    query: str,
+    provider: str | None = typer.Option(None, "--provider", help="Search provider"),
+    limit: int | None = typer.Option(None, "--limit", help="Max results"),
+) -> None:
+    try:
+        results = asyncio.run(search(query, max_results=limit, provider=provider))
+    except SearchError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1)
+    for i, result in enumerate(results):
+        if i > 0:
+            console.print()
+        console.print(result.title)
+        console.print(result.url)
+        console.print(f"[dim]{result.snippet}[/dim]")
+
+
+@scrape_app.command()
+def scrape_cmd(
+    url: str,
+    provider: str | None = typer.Option(None, "--provider", help="Scrape provider"),
+) -> None:
+    try:
+        result = asyncio.run(scrape(url, provider=provider))
+    except ScrapeError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1)
+    console.print(result.text)
