@@ -72,3 +72,6 @@ output/
 # Claude
 .claude/*.local.*
 
+# Git worktrees
+.worktrees/
+
