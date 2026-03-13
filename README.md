@@ -19,8 +19,32 @@ base for prompt engineering and gardening agents
 
 ## Install
 
-TBD
+Requires Python 3.13+ and [uv](https://docs.astral.sh/uv/).
+
+```bash
+git clone <repo>
+cd mini-research
+uv sync
+cp .env.example .env   # add your API keys
+```
+
+Set at least one provider key in `.env`:
+
+```
+OPENAI_API_KEY=sk-...
+# or ANTHROPIC_API_KEY / any LiteLLM-supported provider
+```
 
 ## Usage
 
-TBD
+```bash
+# Run a research query
+uv run mini-research research "your query"
+
+# Test the LLM layer
+uv run mini-research llm models
+uv run mini-research llm chat "Hello" --model openai/gpt-4o-mini
+
+# Run tests
+uv run pytest tests/unit/
+```

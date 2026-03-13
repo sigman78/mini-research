@@ -3,7 +3,7 @@
 | # | Milestone | Status | Description |
 |---|-----------|--------|-------------|
 | M1 | **Project Scaffold** | done | pyproject.toml, src layout, stub modules, CLI entry, smoke tests |
-| M2 | **LLM Module** | - | LiteLLM wrapper, Pydantic config, cost tracker, async interface |
+| M2 | **LLM Module** | done | LiteLLM wrapper, Pydantic config, cost tracker, async interface |
 | M3 | **Search & Scrape Layer** | - | Abstract interfaces, DuckDuckGo/Brave/Reddit search, trafilatura/Jina scrapers, rate limiting |
 | M4 | **State & Working Memory** | - | ResearchState (Pydantic), WorkingMemory class, citation tracking |
 | M5 | **Agent Implementations** | - | Planner, Evaluator, Reporter — async callables with prompt files, mock-LLM unit tests |
