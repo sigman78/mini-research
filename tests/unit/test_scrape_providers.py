@@ -1,4 +1,10 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
+
+def _meta(data: dict) -> MagicMock:
+    m = MagicMock()
+    m.as_dict.return_value = data
+    return m
 
 import pytest
 import respx
@@ -25,7 +31,7 @@ async def test_trafilatura_maps_text():
         ),
         patch(
             "mini_research.scrape.trafilatura_provider.trafilatura.bare_extraction",
-            return_value={"title": ""},
+            return_value=_meta({"title": ""}),
         ),
     ):
         result = await TrafilaturaProvider().scrape("https://example.com")
@@ -45,7 +51,7 @@ async def test_trafilatura_handles_extract_none():
         ),
         patch(
             "mini_research.scrape.trafilatura_provider.trafilatura.bare_extraction",
-            return_value={"title": ""},
+            return_value=_meta({"title": ""}),
         ),
     ):
         result = await TrafilaturaProvider().scrape("https://example.com")
@@ -65,7 +71,7 @@ async def test_trafilatura_captures_title():
         ),
         patch(
             "mini_research.scrape.trafilatura_provider.trafilatura.bare_extraction",
-            return_value={"title": "Page Title"},
+            return_value=_meta({"title": "Page Title"}),
         ),
     ):
         result = await TrafilaturaProvider().scrape("https://example.com")
