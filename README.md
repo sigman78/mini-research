@@ -6,13 +6,13 @@ Pure context engineering, multi-agent powered, LLM powered deep research experim
 base for prompt engineering and gardening agents
 
 ```txt
- ___ ___  ____  ____   ____        ____     ___  _____   ___   ____  ____      __  __ __    ___  ____  
-|   |   ||    ||    \ |    |      |    \   /  _]/ ___/  /  _] /    ||    \    /  ]|  |  |  /  _]|    \ 
-| _   _ | |  | |  _  | |  | _____ |  D  ) /  [_(   \_  /  [_ |  o  ||  D  )  /  / |  |  | /  [_ |  D  )
-|  \_/  | |  | |  |  | |  ||     ||    / |    _]\__  ||    _]|     ||    /  /  /  |  _  ||    _]|    / 
-|   |   | |  | |  |  | |  ||_____||    \ |   [_ /  \ ||   [_ |  _  ||    \ /   \_ |  |  ||   [_ |    \ 
-|   |   | |  | |  |  | |  |       |  .  \|     |\    ||     ||  |  ||  .  \\     ||  |  ||     ||  .  \
-|___|___||____||__|__||____|      |__|\_||_____| \___||_____||__|__||__|\_| \____||__|__||_____||__|\_|
+ ___ ___  ____  ____   ____        ____     ___  _____   ___   ____  ____      __  __ __ 
+|   |   ||    ||    \ |    |      |    \   /  _]/ ___/  /  _] /    ||    \    /  ]|  |  |
+| _   _ | |  | |  _  | |  | _____ |  D  ) /  [_(   \_  /  [_ |  o  ||  D  )  /  / |  |  |
+|  \_/  | |  | |  |  | |  ||     ||    / |    _]\__  ||    _]|     ||    /  /  /  |  _  |
+|   |   | |  | |  |  | |  ||_____||    \ |   [_ /  \ ||   [_ |  _  ||    \ /   \_ |  |  |
+|   |   | |  | |  |  | |  |       |  .  \|     |\    ||     ||  |  ||  .  \\     ||  |  |
+|___|___||____||__|__||____|      |__|\_||_____| \___||_____||__|__||__|\_| \____||__|__|
 ```                                                                                                       
 
 ---
@@ -38,12 +38,21 @@ OPENAI_API_KEY=sk-...
 ## Usage
 
 ```bash
-# Run a research query
-uv run mini-research research "your query"
+# Run a research query (-o is required)
+uv run mini-research research "your query" -o report.md
+uv run mini-research research "your query" -o report.md -i 3 -l 5 -c jina
 
-# Test the LLM layer
+# Search and scrape
+uv run mini-research search "query" -s brave -l 10
+uv run mini-research scrape "https://example.com" -c trafilatura
+
+# LLM utilities
 uv run mini-research llm models
-uv run mini-research llm chat "Hello" --model openai/gpt-4o-mini
+uv run mini-research llm chat "Hello" -m openai/gpt-4o-mini
+uv run mini-research llm chat @prompt.txt -m openai/gpt-4o -s "You are a helpful assistant"
+
+# Text args accept @file notation
+uv run mini-research research @query.txt -o report.md
 
 # Run tests
 uv run pytest tests/unit/

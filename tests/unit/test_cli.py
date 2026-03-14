@@ -1,3 +1,5 @@
+import tempfile
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from typer.testing import CliRunner
@@ -59,10 +61,13 @@ async def _fake_astream(initial_state):
 def test_research_command_displays_report():
     mock_graph = MagicMock()
     mock_graph.astream = _fake_astream
+    with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as f:
+        out_path = f.name
     with patch("mini_research.graph.build_graph", return_value=mock_graph):
-        result = runner.invoke(app, ["research", "test query"])
+        result = runner.invoke(app, ["research", "test query", "-o", out_path])
     assert result.exit_code == 0
     assert "My Report" in result.output
+    assert Path(out_path).read_text() == "## My Report\n\nContent here."
 
 
 async def _fake_astream_no_report(initial_state):
@@ -72,7 +77,9 @@ async def _fake_astream_no_report(initial_state):
 def test_research_command_no_report():
     mock_graph = MagicMock()
     mock_graph.astream = _fake_astream_no_report
+    with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as f:
+        out_path = f.name
     with patch("mini_research.graph.build_graph", return_value=mock_graph):
-        result = runner.invoke(app, ["research", "test query"])
+        result = runner.invoke(app, ["research", "test query", "-o", out_path])
     assert result.exit_code == 0
     assert "No report generated" in result.output

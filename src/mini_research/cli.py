@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 import typer
 from rich.console import Console
@@ -10,8 +11,8 @@ from mini_research.scrape import scrape as _scrape
 from mini_research.search import SearchError
 from mini_research.search import search as _search
 
-app = typer.Typer()
-llm_app = typer.Typer()
+app = typer.Typer(pretty_exceptions_enable=False, rich_markup_mode=None)
+llm_app = typer.Typer(pretty_exceptions_enable=False, rich_markup_mode=None)
 app.add_typer(llm_app, name="llm")
 console = Console()
 
@@ -23,15 +24,35 @@ _NODE_LABELS = {
 }
 
 
+def _resolve(val: str) -> str:
+    if val.startswith("@"):
+        return Path(val[1:]).read_text()
+    return val
+
+
 @app.command()
-def research(query: str) -> None:
+def research(
+    query: str,
+    out: Path = typer.Option(..., "-o", "--out", help="Output file for the report"),
+    iter: int | None = typer.Option(None, "-i", "--iter", help="Max research iterations"),
+    limit: int | None = typer.Option(None, "-l", "--limit", help="Max searches per iteration"),
+    scraper: str | None = typer.Option(None, "-c", "--scraper", help="Scrape provider"),
+    stats: bool = typer.Option(False, "-t", "--stats", help="Print token/cost stats after run"),
+) -> None:
     from rich.markdown import Markdown
     from rich.status import Status
 
     from mini_research.graph import build_graph
     from mini_research.state import ResearchState
 
+    query = _resolve(query)
     settings = Settings()
+    if iter is not None:
+        settings = settings.model_copy(update={"max_research_iterations": iter})
+    if limit is not None:
+        settings = settings.model_copy(update={"search_max_results": limit})
+    if scraper is not None:
+        settings = settings.model_copy(update={"scrape_provider": scraper})
     tracker = CostTracker()
 
     with Status("Starting...", console=console) as status:
@@ -62,20 +83,23 @@ def research(query: str) -> None:
         result = asyncio.run(_run())
 
     if result.get("final_report"):
-        console.print(Markdown(result["final_report"]))
+        out.write_text(result["final_report"])
+        console.print(f"Report written to {out}")
     else:
         console.print("[yellow]No report generated.[/yellow]")
-    console.print(tracker.summary())
+    if stats:
+        console.print(tracker.summary())
 
 
 @app.command()
 def search(
     query: str,
-    provider: str | None = typer.Option(None, "--provider", help="Search provider"),
-    limit: int | None = typer.Option(None, "--limit", help="Max results"),
+    searcher: str | None = typer.Option(None, "-s", "--searcher", help="Search provider"),
+    limit: int | None = typer.Option(None, "-l", "--limit", help="Max results"),
 ) -> None:
+    query = _resolve(query)
     try:
-        results = asyncio.run(_search(query, max_results=limit, provider=provider))
+        results = asyncio.run(_search(query, max_results=limit, provider=searcher))
     except SearchError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(1)
@@ -90,10 +114,10 @@ def search(
 @app.command()
 def scrape(
     url: str,
-    provider: str | None = typer.Option(None, "--provider", help="Scrape provider"),
+    scraper: str | None = typer.Option(None, "-c", "--scraper", help="Scrape provider"),
 ) -> None:
     try:
-        result = asyncio.run(_scrape(url, provider=provider))
+        result = asyncio.run(_scrape(url, provider=scraper))
     except ScrapeError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(1)
@@ -103,9 +127,11 @@ def scrape(
 @llm_app.command()
 def chat(
     prompt: str,
-    model: str | None = typer.Option(None, "--model", help="LiteLLM model string"),
-    system: str | None = typer.Option(None, "--system", help="System prompt"),
+    model: str | None = typer.Option(None, "-m", "--model", help="LiteLLM model string"),
+    system: str | None = typer.Option(None, "-s", "--system", help="System prompt"),
 ) -> None:
+    prompt = _resolve(prompt)
+    system = _resolve(system) if system else None
     messages: list[Message] = []
     if system:
         messages.append(Message(role="system", content=system))
