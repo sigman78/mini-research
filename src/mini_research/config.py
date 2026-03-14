@@ -13,5 +13,8 @@ class Settings(BaseSettings):
     search_max_results: int = 5
     search_delay_seconds: float = 0.5
     max_research_iterations: int = 3
+    langsmith_api_key: str | None = None
+    langsmith_tracing: bool = False
+    langsmith_project: str = "mini-research"
 
     model_config = {"env_file": ".env", "extra": "ignore"}

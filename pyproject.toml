@@ -1,7 +1,7 @@
 [project]
 name = "mini-research"
 version = "0.1.0"
-description = "Add your description here"
+description = "Mini Derp Researcher - Agent based search and summarize engine"
 readme = "README.md"
 authors = [
     { name = "SiGMan", email = "sigman@ioupg.com" }

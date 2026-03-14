@@ -1,3 +1,5 @@
+import os
+
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
@@ -81,6 +83,11 @@ def build_graph(
         settings = Settings()
     if tracker is None:
         tracker = CostTracker()
+
+    if settings.langsmith_tracing and settings.langsmith_api_key:
+        os.environ["LANGSMITH_API_KEY"] = settings.langsmith_api_key
+        os.environ["LANGSMITH_TRACING"] = "true"
+        os.environ["LANGSMITH_PROJECT"] = settings.langsmith_project
 
     async def _plan(state: ResearchState) -> dict:
         return await plan_node(state, settings, tracker)
