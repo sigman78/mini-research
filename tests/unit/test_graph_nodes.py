@@ -99,6 +99,28 @@ async def test_gather_node_accumulates_facts():
 
 
 @pytest.mark.asyncio
+async def test_gather_node_calls_progress_callback():
+    state = _make_state(search_queries=["q1"])
+    settings = _make_settings()
+    tracker = CostTracker()
+    search_results = [
+        SearchResult(url="https://url1.com", title="U1", snippet=""),
+        SearchResult(url="https://url2.com", title="U2", snippet=""),
+    ]
+    calls: list[tuple[int, int]] = []
+    fact = Fact(text="f", source_url="https://url1.com")
+
+    def _cb(done, total):
+        calls.append((done, total))
+
+    with patch("mini_research.graph.search_tool", new=AsyncMock(return_value=search_results)):
+        with patch("mini_research.graph.extract_tool", new=AsyncMock(return_value=fact)):
+            await gather_node(state, settings, tracker, on_scrape_progress=_cb)
+    assert (0, 2) in calls
+    assert (2, 2) in calls
+
+
+@pytest.mark.asyncio
 async def test_evaluate_node_sets_sufficient():
     state = _make_state(search_queries=["q1"])
     settings = _make_settings()

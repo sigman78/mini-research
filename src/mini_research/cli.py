@@ -33,17 +33,29 @@ def research(query: str) -> None:
 
     settings = Settings()
     tracker = CostTracker()
-    graph = build_graph(settings=settings, tracker=tracker)
-    initial_state = ResearchState(query=query)
 
     with Status("Starting...", console=console) as status:
+
+        def _on_scrape_progress(done: int, total: int) -> None:
+            status.update(f"Gathering sources... |{done}/{total}|")
+
+        graph = build_graph(
+            settings=settings, tracker=tracker, on_scrape_progress=_on_scrape_progress
+        )
+        initial_state = ResearchState(query=query)
 
         async def _run() -> dict:
             merged: dict = {}
             async for chunk in graph.astream(initial_state):
                 for node_name, updates in chunk.items():
                     if not node_name.startswith("__"):
-                        status.update(_NODE_LABELS.get(node_name, node_name))
+                        if node_name == "evaluate":
+                            iteration = updates.get("iteration_count", 0)
+                            max_iter = settings.max_research_iterations
+                            label = f"Evaluating coverage (iteration {iteration}/{max_iter})..."
+                        else:
+                            label = _NODE_LABELS.get(node_name, node_name)
+                        status.update(label)
                         merged.update(updates)
             return merged
 

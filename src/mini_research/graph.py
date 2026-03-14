@@ -1,4 +1,5 @@
 import os
+from collections.abc import Callable
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
@@ -23,19 +24,29 @@ async def gather_node(
     state: ResearchState,
     settings: Settings,
     tracker: CostTracker,
+    on_scrape_progress: Callable[[int, int], None] | None = None,
 ) -> dict:
     visited = set(state.visited_urls)
     new_urls: list[str] = []
-    new_facts = []
+
     for query in state.search_queries:
         results = await search_tool(query, settings=settings)
         for result in results:
             if result.url not in visited:
                 visited.add(result.url)
                 new_urls.append(result.url)
-                fact = await extract_tool(result.url, settings=settings)
-                if fact is not None:
-                    new_facts.append(fact)
+
+    new_facts = []
+    total = len(new_urls)
+    for i, url in enumerate(new_urls):
+        if on_scrape_progress:
+            on_scrape_progress(i, total)
+        fact = await extract_tool(url, settings=settings)
+        if fact is not None:
+            new_facts.append(fact)
+    if on_scrape_progress and total > 0:
+        on_scrape_progress(total, total)
+
     return {
         "visited_urls": state.visited_urls + new_urls,
         "gathered_facts": state.gathered_facts + new_facts,
@@ -78,6 +89,7 @@ def route_after_evaluate(settings: Settings):
 def build_graph(
     settings: Settings | None = None,
     tracker: CostTracker | None = None,
+    on_scrape_progress: Callable[[int, int], None] | None = None,
 ) -> CompiledStateGraph:
     if settings is None:
         settings = Settings()
@@ -93,7 +105,7 @@ def build_graph(
         return await plan_node(state, settings, tracker)
 
     async def _gather(state: ResearchState) -> dict:
-        return await gather_node(state, settings, tracker)
+        return await gather_node(state, settings, tracker, on_scrape_progress)
 
     async def _evaluate(state: ResearchState) -> dict:
         return await evaluate_node(state, settings, tracker)
