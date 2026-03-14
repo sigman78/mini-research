@@ -31,11 +31,13 @@ async def run_evaluator(
     tracker: CostTracker | None = None,
 ) -> EvaluatorResult:
     summary = _facts_summary(state)
+    searched = "\n".join(f"{i}. {q}" for i, q in enumerate(state.search_queries, 1))
     system_prompt = load_prompt(
         "evaluator",
         query=state.query,
         facts_summary=summary,
         iteration=str(state.iteration_count),
+        searched_queries=searched or "None yet.",
     )
     messages = [
         Message(role="system", content=system_prompt),

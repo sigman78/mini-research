@@ -39,7 +39,6 @@ def research(
     scraper: str | None = typer.Option(None, "-c", "--scraper", help="Scrape provider"),
     stats: bool = typer.Option(False, "-t", "--stats", help="Print token/cost stats after run"),
 ) -> None:
-    from rich.markdown import Markdown
     from rich.status import Status
 
     from mini_research.graph import build_graph
