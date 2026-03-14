@@ -1,0 +1,31 @@
+from ..config import Settings
+from ..llm.client import complete
+from ..llm.cost import CostTracker
+from ..llm.models import Message
+from ..state import ResearchState
+from .prompts import load_prompt
+
+
+def _format_facts(state: ResearchState) -> str:
+    if not state.gathered_facts:
+        return "No facts gathered."
+    lines = []
+    for fact in state.gathered_facts:
+        title = fact.source_title or fact.source_url
+        lines.append(f"- {fact.text} (source: [{title}]({fact.source_url}))")
+    return "\n".join(lines)
+
+
+async def run_reporter(
+    state: ResearchState,
+    settings: Settings | None = None,
+    tracker: CostTracker | None = None,
+) -> str:
+    facts = _format_facts(state)
+    system_prompt = load_prompt("reporter", query=state.query, facts=facts)
+    messages = [
+        Message(role="system", content=system_prompt),
+        Message(role="user", content=f"Write a research report on: {state.query}"),
+    ]
+    response = await complete(messages, settings=settings, tracker=tracker)
+    return response.text
