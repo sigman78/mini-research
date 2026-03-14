@@ -20,7 +20,21 @@ console = Console()
 
 @app.command()
 def research(query: str) -> None:
-    typer.echo(f"Researching: {query}")
+    from rich.markdown import Markdown
+
+    from mini_research.graph import build_graph
+    from mini_research.state import ResearchState
+
+    settings = Settings()
+    tracker = CostTracker()
+    graph = build_graph(settings=settings, tracker=tracker)
+    initial_state = ResearchState(query=query)
+    result = asyncio.run(graph.ainvoke(initial_state))
+    if result.get("final_report"):
+        console.print(Markdown(result["final_report"]))
+    else:
+        console.print("[yellow]No report generated.[/yellow]")
+    console.print(tracker.summary())
 
 
 @llm_app.command()

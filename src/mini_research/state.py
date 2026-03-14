@@ -13,4 +13,5 @@ class ResearchState(BaseModel):
     visited_urls: list[str] = Field(default_factory=list)
     gathered_facts: list[Fact] = Field(default_factory=list)
     iteration_count: int = 0
+    coverage_sufficient: bool = False
     final_report: str | None = None

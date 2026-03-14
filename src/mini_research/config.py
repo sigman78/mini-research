@@ -12,5 +12,6 @@ class Settings(BaseSettings):
     scrape_provider: str = "trafilatura"
     search_max_results: int = 5
     search_delay_seconds: float = 0.5
+    max_research_iterations: int = 3
 
     model_config = {"env_file": ".env", "extra": "ignore"}

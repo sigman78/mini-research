@@ -7,6 +7,7 @@ from mini_research.agents import (
     run_planner,
     run_reporter,
 )
+from mini_research.graph import build_graph
 from mini_research.memory import WorkingMemory
 from mini_research.state import Fact, ResearchState
 
@@ -16,6 +17,7 @@ __all__ = [
     "PlannerResult",
     "ResearchState",
     "WorkingMemory",
+    "build_graph",
     "run_evaluator",
     "run_planner",
     "run_reporter",
