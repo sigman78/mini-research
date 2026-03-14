@@ -1,0 +1,18 @@
+from .errors import ScrapeError
+from .models import ScrapeResult
+
+
+class Crawl4aiProvider:
+    async def scrape(self, url: str) -> ScrapeResult:
+        try:
+            from crawl4ai import AsyncWebCrawler
+        except ImportError as e:
+            raise ScrapeError("crawl4ai is not installed (pip install crawl4ai)") from e
+
+        async with AsyncWebCrawler() as crawler:
+            result = await crawler.arun(url)
+        if not result.success:
+            raise ScrapeError(result.error_message or f"crawl4ai failed: {url}")
+        text = result.markdown.raw_markdown if result.markdown else ""
+        title = (result.metadata or {}).get("title", "") or ""
+        return ScrapeResult(url=url, text=text, title=title)

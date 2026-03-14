@@ -14,5 +14,5 @@ class TrafilaturaProvider:
             text = await asyncio.to_thread(trafilatura.extract, html) or ""
             meta = await asyncio.to_thread(trafilatura.bare_extraction, html)
             if meta:
-                title = meta.get("title", "") or ""
+                title = meta.as_dict().get("title", "") or ""
         return ScrapeResult(url=url, text=text, title=title)

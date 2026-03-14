@@ -1,4 +1,5 @@
 from ..config import Settings
+from .crawl4ai_provider import Crawl4aiProvider
 from .errors import ScrapeError
 from .jina import JinaProvider
 from .models import ScrapeResult
@@ -17,6 +18,7 @@ async def scrape(
     dispatch = {
         "trafilatura": TrafilaturaProvider,
         "jina": JinaProvider,
+        "crawl4ai": Crawl4aiProvider,
     }
 
     if resolved_provider not in dispatch:
