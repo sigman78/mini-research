@@ -5,7 +5,7 @@ from .models import ScrapeResult
 class Crawl4aiProvider:
     async def scrape(self, url: str) -> ScrapeResult:
         try:
-            from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, BrowserConfig
+            from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
         except ImportError as e:
             raise ScrapeError("crawl4ai is not installed (pip install crawl4ai)") from e
         
