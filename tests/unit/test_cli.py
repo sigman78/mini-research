@@ -66,7 +66,7 @@ def test_research_command_displays_report():
     with patch("mini_research.graph.build_graph", return_value=mock_graph):
         result = runner.invoke(app, ["research", "test query", "-o", out_path])
     assert result.exit_code == 0
-    assert "My Report" in result.output
+    assert "Report written to" in result.output
     assert Path(out_path).read_text() == "## My Report\n\nContent here."
 
 
