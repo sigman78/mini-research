@@ -9,6 +9,8 @@ import pytest
 def stub_crawl4ai():
     stub = ModuleType("crawl4ai")
     stub.AsyncWebCrawler = MagicMock
+    stub.BrowserConfig = MagicMock
+    stub.CrawlerRunConfig = MagicMock
     prev = sys.modules.get("crawl4ai")
     sys.modules["crawl4ai"] = stub
     yield

@@ -1043,6 +1043,21 @@ wheels = [
 ]
 
 [[package]]
+name = "langchain-litellm"
+version = "0.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "httpx" },
+    { name = "langchain-core" },
+    { name = "litellm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d1/bd/96f2fbaf6274d97b463d787691f1ba9298f977c40361bbfc86f622f793e5/langchain_litellm-0.6.1.tar.gz", hash = "sha256:e1dae0c547ad577235998c40700e88a1fec74741c2e010831feff37d57ecb229", size = 332978, upload-time = "2026-03-01T20:35:33.16Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/63/ac/cf509fa91e90fea069e40c8d9fea2f89eb0b0acf8a6e33e76ec17c1fc4f5/langchain_litellm-0.6.1-py3-none-any.whl", hash = "sha256:c62b49b3a151d1cee912ba79156cac120d12e572f4ade27557eaeb37a67d6571", size = 24862, upload-time = "2026-03-01T20:35:34.444Z" },
+]
+
+[[package]]
 name = "langgraph"
 version = "1.1.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1271,8 +1286,10 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "chardet" },
+    { name = "crawl4ai" },
     { name = "ddgs" },
     { name = "httpx" },
+    { name = "langchain-litellm" },
     { name = "langgraph" },
     { name = "litellm" },
     { name = "pydantic" },
@@ -1303,9 +1320,11 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "chardet", specifier = ">=5.2.0,<6.0.0" },
+    { name = "crawl4ai", specifier = ">=0.8.0" },
     { name = "crawl4ai", marker = "extra == 'extras'", specifier = ">=0.8.0" },
     { name = "ddgs", specifier = ">=8.1.1" },
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "langchain-litellm", specifier = ">=0.6.1" },
     { name = "langgraph", specifier = ">=1.1.2" },
     { name = "litellm", specifier = ">=1.82.1" },
     { name = "praw", marker = "extra == 'extras'", specifier = ">=7.8.1" },
