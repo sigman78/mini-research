@@ -15,7 +15,9 @@ base for prompt engineering and gardening agents
 |___|___||____||__|__||____|      |__|\_||_____| \___||_____||__|__||__|\_| \____||__|__|
 ```                                                                                                       
 
-Sample result on *Notable locations and activities to visit by train lovers in SoCal?* [#1 Cheaper LLM and faster scrape](https://gist.github.com/sigman78/05dd59226dccfbdd987bb72683491a36) and [#2 Expensive LLM and playwright scraper](https://gist.github.com/sigman78/3f090d8a9c14dba8912ac3af061e309c)
+Sample report on *Notable locations and activities to visit by train lovers in SoCal?*
+- [#1 Simpler model and faster scrape](https://gist.github.com/sigman78/05dd59226dccfbdd987bb72683491a36)
+- [#2 Better model and playwright scraper](https://gist.github.com/sigman78/3f090d8a9c14dba8912ac3af061e309c)
 
 ---
 
