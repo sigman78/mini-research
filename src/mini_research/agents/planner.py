@@ -19,10 +19,11 @@ async def run_planner(
     settings: Settings | None = None,
     tracker: CostTracker | None = None,
 ) -> PlannerResult:
-    system_prompt = load_prompt("planner", query=state.query)
+    system_prompt = load_prompt("planner_system")
+    user_prompt = load_prompt("planner_user", query=state.query)
     messages = [
         Message(role="system", content=system_prompt),
-        Message(role="user", content=f"Plan research for: {state.query}"),
+        Message(role="user", content=user_prompt),
     ]
     response = await complete(messages, settings=settings, tracker=tracker)
     json_text = extract_json(response.text)

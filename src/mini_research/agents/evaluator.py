@@ -32,16 +32,17 @@ async def run_evaluator(
 ) -> EvaluatorResult:
     summary = _facts_summary(state)
     searched = "\n".join(f"{i}. {q}" for i, q in enumerate(state.search_queries, 1))
-    system_prompt = load_prompt(
-        "evaluator",
+    system_prompt = load_prompt("evaluator_system")
+    user_prompt = load_prompt(
+        "evaluator_user",
         query=state.query,
-        facts_summary=summary,
         iteration=str(state.iteration_count),
         searched_queries=searched or "None yet.",
+        facts_summary=summary,
     )
     messages = [
         Message(role="system", content=system_prompt),
-        Message(role="user", content="Evaluate the current research coverage."),
+        Message(role="user", content=user_prompt),
     ]
     response = await complete(messages, settings=settings, tracker=tracker)
     json_text = extract_json(response.text)

@@ -30,13 +30,13 @@ def _make_state(**kwargs) -> ResearchState:
 
 
 def test_load_prompt_substitutes_vars():
-    result = load_prompt("planner", query="test query")
+    result = load_prompt("planner_user", query="test query")
     assert "test query" in result
 
 
 def test_load_prompt_missing_var_raises():
     with pytest.raises(KeyError):
-        load_prompt("planner")
+        load_prompt("planner_user")
 
 
 def test_load_prompt_unknown_name_raises():
@@ -211,8 +211,8 @@ async def test_run_reporter_builds_facts_summary():
         await run_reporter(state)
 
     call_messages = mock_complete.call_args.args[0]
-    system_content = call_messages[0].content
-    assert "Qubits can be 0 and 1 simultaneously" in system_content
+    user_content = call_messages[1].content
+    assert "Qubits can be 0 and 1 simultaneously" in user_content
 
 
 @pytest.mark.asyncio

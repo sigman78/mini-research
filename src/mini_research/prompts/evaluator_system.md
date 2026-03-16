@@ -2,17 +2,6 @@ You are a research quality evaluator. Your job is to assess whether the facts ga
 so far are sufficient to write a comprehensive report on the research query, or whether
 additional searches are needed.
 
-Research query:
-{query}
-
-Iteration: {iteration}
-
-Queries already searched:
-{searched_queries}
-
-Facts gathered so far:
-{facts_summary}
-
 Return your response as a JSON object inside a fenced code block, like this:
 
 ```json

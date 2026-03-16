@@ -28,7 +28,12 @@ class CostTracker:
         table.add_column("Output Tokens", justify="right")
         table.add_column("Cost (USD)", justify="right")
         for model, agg in aggregated.items():
-            table.add_row(model, str(agg["input_tokens"]), str(agg["output_tokens"]), f"${agg['cost_usd']:.6f}") # noqa
+            table.add_row(
+                model,
+                str(agg["input_tokens"]),
+                str(agg["output_tokens"]),
+                f"${agg['cost_usd']:.6f}",
+            )  # noqa
         if len(aggregated) > 1:
             table.add_section()
             table.add_row(

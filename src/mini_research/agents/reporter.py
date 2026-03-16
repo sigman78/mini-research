@@ -22,10 +22,11 @@ async def run_reporter(
     tracker: CostTracker | None = None,
 ) -> str:
     facts = _format_facts(state)
-    system_prompt = load_prompt("reporter", query=state.query, facts=facts)
+    system_prompt = load_prompt("reporter_system")
+    user_prompt = load_prompt("reporter_user", query=state.query, facts=facts)
     messages = [
         Message(role="system", content=system_prompt),
-        Message(role="user", content=f"Write a research report on: {state.query}"),
+        Message(role="user", content=user_prompt),
     ]
     response = await complete(messages, settings=settings, tracker=tracker)
     return response.text

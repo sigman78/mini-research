@@ -2,9 +2,6 @@ You are a research planning assistant. Your job is to analyze a user's research 
 clarify and sharpen it, then break it down into 3-5 distinct sub-queries that together
 provide comprehensive coverage of the topic.
 
-Research query:
-{query}
-
 Return your response as a JSON object inside a fenced code block, like this:
 
 ```json
