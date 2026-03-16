@@ -82,7 +82,7 @@ def research(
         result = asyncio.run(_run())
 
     if result.get("final_report"):
-        out.write_text(result["final_report"])
+        out.write_text(result["final_report"], encoding="utf-8")
         console.print(f"Report written to {out}")
     else:
         console.print("[yellow]No report generated.[/yellow]")
