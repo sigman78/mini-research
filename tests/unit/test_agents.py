@@ -1,7 +1,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pydantic import ValidationError
 
 from mini_research.agents.evaluator import EvaluatorResult, run_evaluator
 from mini_research.agents.planner import PlannerResult, run_planner
@@ -48,23 +47,21 @@ def test_load_prompt_unknown_name_raises():
 # Planner tests
 # ---------------------------------------------------------------------------
 
-PLANNER_JSON = """```json
-{
-  "enriched_query": "What is quantum computing and how does it differ from classical computing?",
-  "sub_queries": [
-    "quantum computing fundamentals and qubits",
-    "quantum vs classical computing comparison",
-    "quantum computing real-world applications"
-  ]
-}
-```"""
-
 
 @pytest.mark.asyncio
 async def test_run_planner_parses_json():
     state = _make_state()
-    mock_response = _make_response(PLANNER_JSON)
-    with patch("mini_research.agents.planner.complete", new=AsyncMock(return_value=mock_response)):
+    expected = PlannerResult(
+        enriched_query="What is quantum computing and how does it differ from classical computing?",
+        sub_queries=[
+            "quantum computing fundamentals and qubits",
+            "quantum vs classical computing comparison",
+            "quantum computing real-world applications",
+        ],
+    )
+    with patch(
+        "mini_research.agents.planner.complete_structured", new=AsyncMock(return_value=expected)
+    ):
         result = await run_planner(state)
 
     assert isinstance(result, PlannerResult)
@@ -76,58 +73,32 @@ async def test_run_planner_parses_json():
 async def test_run_planner_passes_tracker():
     state = _make_state()
     tracker = MagicMock(spec=CostTracker)
-    mock_response = _make_response(PLANNER_JSON)
+    expected = PlannerResult(enriched_query="q", sub_queries=["a"])
     with patch(
-        "mini_research.agents.planner.complete", new=AsyncMock(return_value=mock_response)
-    ) as mock_complete:
+        "mini_research.agents.planner.complete_structured",
+        new=AsyncMock(return_value=expected),
+    ) as mock_cs:
         await run_planner(state, tracker=tracker)
 
-    _, kwargs = mock_complete.call_args
+    _, kwargs = mock_cs.call_args
     assert kwargs.get("tracker") is tracker
-
-
-@pytest.mark.asyncio
-async def test_run_planner_invalid_json_raises():
-    state = _make_state()
-    mock_response = _make_response("not valid json at all")
-    with patch("mini_research.agents.planner.complete", new=AsyncMock(return_value=mock_response)):
-        with pytest.raises((ValidationError, ValueError)):
-            await run_planner(state)
 
 
 # ---------------------------------------------------------------------------
 # Evaluator tests
 # ---------------------------------------------------------------------------
 
-EVALUATOR_SUFFICIENT = """```json
-{
-  "sufficient": true,
-  "new_queries": [],
-  "reasoning": "Enough facts collected to write a comprehensive report."
-}
-```"""
-
-EVALUATOR_INSUFFICIENT = """```json
-{
-  "sufficient": false,
-  "new_queries": ["quantum error correction", "quantum supremacy milestones"],
-  "reasoning": "Missing coverage on error correction and recent milestones."
-}
-```"""
-
-EVALUATOR_MINIMAL = """```json
-{
-  "sufficient": false
-}
-```"""
-
 
 @pytest.mark.asyncio
 async def test_run_evaluator_sufficient():
     state = _make_state()
-    mock_response = _make_response(EVALUATOR_SUFFICIENT)
+    expected = EvaluatorResult(
+        sufficient=True,
+        new_queries=[],
+        reasoning="Enough facts collected to write a comprehensive report.",
+    )
     with patch(
-        "mini_research.agents.evaluator.complete", new=AsyncMock(return_value=mock_response)
+        "mini_research.agents.evaluator.complete_structured", new=AsyncMock(return_value=expected)
     ):
         result = await run_evaluator(state)
 
@@ -139,9 +110,13 @@ async def test_run_evaluator_sufficient():
 @pytest.mark.asyncio
 async def test_run_evaluator_insufficient_with_queries():
     state = _make_state()
-    mock_response = _make_response(EVALUATOR_INSUFFICIENT)
+    expected = EvaluatorResult(
+        sufficient=False,
+        new_queries=["quantum error correction", "quantum supremacy milestones"],
+        reasoning="Missing coverage on error correction and recent milestones.",
+    )
     with patch(
-        "mini_research.agents.evaluator.complete", new=AsyncMock(return_value=mock_response)
+        "mini_research.agents.evaluator.complete_structured", new=AsyncMock(return_value=expected)
     ):
         result = await run_evaluator(state)
 
@@ -153,9 +128,9 @@ async def test_run_evaluator_insufficient_with_queries():
 @pytest.mark.asyncio
 async def test_run_evaluator_defaults():
     state = _make_state()
-    mock_response = _make_response(EVALUATOR_MINIMAL)
+    expected = EvaluatorResult(sufficient=False)
     with patch(
-        "mini_research.agents.evaluator.complete", new=AsyncMock(return_value=mock_response)
+        "mini_research.agents.evaluator.complete_structured", new=AsyncMock(return_value=expected)
     ):
         result = await run_evaluator(state)
 

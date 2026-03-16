@@ -1,11 +1,10 @@
 from pydantic import BaseModel
 
 from ..config import Settings
-from ..llm.client import complete
+from ..llm.client import complete_structured
 from ..llm.cost import CostTracker
 from ..llm.models import Message
 from ..state import ResearchState
-from ._parse import extract_json
 from .prompts import load_prompt
 
 
@@ -25,6 +24,4 @@ async def run_planner(
         Message(role="system", content=system_prompt),
         Message(role="user", content=user_prompt),
     ]
-    response = await complete(messages, settings=settings, tracker=tracker)
-    json_text = extract_json(response.text)
-    return PlannerResult.model_validate_json(json_text)
+    return await complete_structured(messages, PlannerResult, settings=settings, tracker=tracker)
