@@ -3,7 +3,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from langchain_core.messages import AIMessage
 
-from mini_research.llm.client import LLMError, complete
+from mini_research.agents.planner import PlannerResult
+from mini_research.llm.client import LLMError, complete, complete_structured
 from mini_research.llm.cost import CostTracker
 from mini_research.llm.models import LLMResponse, Message
 
@@ -87,9 +88,7 @@ async def test_no_tracker_no_error():
 @pytest.mark.asyncio
 async def test_api_error_raises_llm_error():
     original = RuntimeError("network failure")
-    with patch(
-        "mini_research.llm.client.ChatLiteLLM.ainvoke", new=AsyncMock(side_effect=original)
-    ):
+    with patch("mini_research.llm.client.ChatLiteLLM.ainvoke", new=AsyncMock(side_effect=original)):
         with pytest.raises(LLMError) as exc_info:
             await complete(MESSAGES, model="openai/gpt-4o-mini")
 
@@ -132,3 +131,83 @@ async def test_usage_none_tokens_are_zero():
 @pytest.mark.skip(reason="model is baked into ChatLiteLLM constructor, needs dedicated mock")
 async def test_model_fallback_uses_settings_default():
     pass
+
+
+# ---------------------------------------------------------------------------
+# complete_structured tests
+# ---------------------------------------------------------------------------
+
+
+def _make_structured_result(parsed: PlannerResult, ai_message: AIMessage) -> dict:
+    return {"raw": ai_message, "parsed": parsed, "parsing_error": None}
+
+
+@pytest.mark.asyncio
+async def test_complete_structured_happy_path():
+    ai_message = _make_ai_message(input_tokens=8, output_tokens=12)
+    expected = PlannerResult(enriched_query="What is quantum computing?", sub_queries=["a", "b"])
+    chain_result = _make_structured_result(expected, ai_message)
+
+    mock_chain = MagicMock()
+    mock_chain.ainvoke = AsyncMock(return_value=chain_result)
+
+    with patch(
+        "mini_research.llm.client.ChatLiteLLM.with_structured_output", return_value=mock_chain
+    ):
+        result = await complete_structured(MESSAGES, PlannerResult, model="openai/gpt-4o-mini")
+
+    assert result is expected
+    assert result.enriched_query == "What is quantum computing?"
+
+
+@pytest.mark.asyncio
+async def test_complete_structured_tracker_called():
+    ai_message = _make_ai_message(input_tokens=8, output_tokens=12)
+    expected = PlannerResult(enriched_query="q", sub_queries=["x"])
+    chain_result = _make_structured_result(expected, ai_message)
+    tracker = MagicMock(spec=CostTracker)
+
+    mock_chain = MagicMock()
+    mock_chain.ainvoke = AsyncMock(return_value=chain_result)
+
+    with (
+        patch(
+            "mini_research.llm.client.ChatLiteLLM.with_structured_output", return_value=mock_chain
+        ),
+        patch("mini_research.llm.client.litellm.completion_cost", return_value=0.0005),
+    ):
+        await complete_structured(
+            MESSAGES, PlannerResult, model="openai/gpt-4o-mini", tracker=tracker
+        )
+
+    tracker.add.assert_called_once()
+    recorded: LLMResponse = tracker.add.call_args.args[0]
+    assert recorded.input_tokens == 8
+    assert recorded.output_tokens == 12
+
+
+@pytest.mark.asyncio
+async def test_complete_structured_parsing_error_raises_llm_error():
+    ai_message = _make_ai_message()
+    chain_result = {"raw": ai_message, "parsed": None, "parsing_error": ValueError("bad schema")}
+
+    mock_chain = MagicMock()
+    mock_chain.ainvoke = AsyncMock(return_value=chain_result)
+
+    with patch(
+        "mini_research.llm.client.ChatLiteLLM.with_structured_output", return_value=mock_chain
+    ):
+        with pytest.raises(LLMError, match="parsing error"):
+            await complete_structured(MESSAGES, PlannerResult, model="openai/gpt-4o-mini")
+
+
+@pytest.mark.asyncio
+async def test_complete_structured_api_error_raises_llm_error():
+    mock_chain = MagicMock()
+    mock_chain.ainvoke = AsyncMock(side_effect=RuntimeError("connection refused"))
+
+    with patch(
+        "mini_research.llm.client.ChatLiteLLM.with_structured_output", return_value=mock_chain
+    ):
+        with pytest.raises(LLMError):
+            await complete_structured(MESSAGES, PlannerResult, model="openai/gpt-4o-mini")

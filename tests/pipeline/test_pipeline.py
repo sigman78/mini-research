@@ -7,9 +7,9 @@ from mini_research.llm.cost import CostTracker
 from mini_research.state import ResearchState
 
 from .conftest import (
-    EVALUATOR_INSUFFICIENT_JSON,
-    EVALUATOR_SUFFICIENT_JSON,
-    PLANNER_JSON,
+    EVALUATOR_INSUFFICIENT,
+    EVALUATOR_SUFFICIENT,
+    PLANNER_RESULT,
     REPORTER_MARKDOWN,
     _make_llm_response,
     make_fact,
@@ -19,8 +19,6 @@ from .conftest import (
 
 @pytest.mark.asyncio
 async def test_pipeline_single_iteration_trace(fast_settings):
-    planner_resp = _make_llm_response(PLANNER_JSON)
-    evaluator_resp = _make_llm_response(EVALUATOR_SUFFICIENT_JSON)
     reporter_resp = _make_llm_response(REPORTER_MARKDOWN)
     search_results = [make_search_result("https://example.com")]
     facts = {"https://example.com": make_fact("https://example.com")}
@@ -29,9 +27,13 @@ async def test_pipeline_single_iteration_trace(fast_settings):
     initial_state = ResearchState(query="What is quantum computing?")
 
     with (
-        patch("mini_research.agents.planner.complete", new=AsyncMock(return_value=planner_resp)),
         patch(
-            "mini_research.agents.evaluator.complete", new=AsyncMock(return_value=evaluator_resp)
+            "mini_research.agents.planner.complete_structured",
+            new=AsyncMock(return_value=PLANNER_RESULT),
+        ),
+        patch(
+            "mini_research.agents.evaluator.complete_structured",
+            new=AsyncMock(return_value=EVALUATOR_SUFFICIENT),
         ),
         patch("mini_research.agents.reporter.complete", new=AsyncMock(return_value=reporter_resp)),
         patch("mini_research.graph.search_tool", new=AsyncMock(return_value=search_results)),
@@ -49,22 +51,22 @@ async def test_pipeline_single_iteration_trace(fast_settings):
 
 @pytest.mark.asyncio
 async def test_pipeline_two_iterations_trace(fast_settings):
-    planner_resp = _make_llm_response(PLANNER_JSON)
-    evaluator_resp1 = _make_llm_response(EVALUATOR_INSUFFICIENT_JSON)
-    evaluator_resp2 = _make_llm_response(EVALUATOR_SUFFICIENT_JSON)
     reporter_resp = _make_llm_response(REPORTER_MARKDOWN)
     search_results = [make_search_result("https://example.com")]
     facts = {"https://example.com": make_fact("https://example.com")}
 
-    evaluator_iter = iter([evaluator_resp1, evaluator_resp2])
+    evaluator_iter = iter([EVALUATOR_INSUFFICIENT, EVALUATOR_SUFFICIENT])
 
     graph = build_graph(settings=fast_settings)
     initial_state = ResearchState(query="What is quantum computing?")
 
     with (
-        patch("mini_research.agents.planner.complete", new=AsyncMock(return_value=planner_resp)),
         patch(
-            "mini_research.agents.evaluator.complete",
+            "mini_research.agents.planner.complete_structured",
+            new=AsyncMock(return_value=PLANNER_RESULT),
+        ),
+        patch(
+            "mini_research.agents.evaluator.complete_structured",
             new=AsyncMock(side_effect=lambda *a, **kw: next(evaluator_iter)),
         ),
         patch("mini_research.agents.reporter.complete", new=AsyncMock(return_value=reporter_resp)),
@@ -83,8 +85,6 @@ async def test_pipeline_two_iterations_trace(fast_settings):
 
 @pytest.mark.asyncio
 async def test_pipeline_max_iterations_exits(fast_settings):
-    planner_resp = _make_llm_response(PLANNER_JSON)
-    evaluator_resp = _make_llm_response(EVALUATOR_INSUFFICIENT_JSON)
     reporter_resp = _make_llm_response(REPORTER_MARKDOWN)
     search_results = [make_search_result("https://example.com")]
     facts = {"https://example.com": make_fact("https://example.com")}
@@ -93,9 +93,13 @@ async def test_pipeline_max_iterations_exits(fast_settings):
     initial_state = ResearchState(query="What is quantum computing?")
 
     with (
-        patch("mini_research.agents.planner.complete", new=AsyncMock(return_value=planner_resp)),
         patch(
-            "mini_research.agents.evaluator.complete", new=AsyncMock(return_value=evaluator_resp)
+            "mini_research.agents.planner.complete_structured",
+            new=AsyncMock(return_value=PLANNER_RESULT),
+        ),
+        patch(
+            "mini_research.agents.evaluator.complete_structured",
+            new=AsyncMock(return_value=EVALUATOR_INSUFFICIENT),
         ),
         patch("mini_research.agents.reporter.complete", new=AsyncMock(return_value=reporter_resp)),
         patch("mini_research.graph.search_tool", new=AsyncMock(return_value=search_results)),
@@ -113,8 +117,6 @@ async def test_pipeline_max_iterations_exits(fast_settings):
 
 @pytest.mark.asyncio
 async def test_pipeline_final_report_in_state(fast_settings):
-    planner_resp = _make_llm_response(PLANNER_JSON)
-    evaluator_resp = _make_llm_response(EVALUATOR_SUFFICIENT_JSON)
     reporter_resp = _make_llm_response(REPORTER_MARKDOWN)
     search_results = [make_search_result("https://example.com")]
     facts = {"https://example.com": make_fact("https://example.com")}
@@ -123,9 +125,13 @@ async def test_pipeline_final_report_in_state(fast_settings):
     initial_state = ResearchState(query="What is quantum computing?")
 
     with (
-        patch("mini_research.agents.planner.complete", new=AsyncMock(return_value=planner_resp)),
         patch(
-            "mini_research.agents.evaluator.complete", new=AsyncMock(return_value=evaluator_resp)
+            "mini_research.agents.planner.complete_structured",
+            new=AsyncMock(return_value=PLANNER_RESULT),
+        ),
+        patch(
+            "mini_research.agents.evaluator.complete_structured",
+            new=AsyncMock(return_value=EVALUATOR_SUFFICIENT),
         ),
         patch("mini_research.agents.reporter.complete", new=AsyncMock(return_value=reporter_resp)),
         patch("mini_research.graph.search_tool", new=AsyncMock(return_value=search_results)),
@@ -141,8 +147,6 @@ async def test_pipeline_final_report_in_state(fast_settings):
 
 @pytest.mark.asyncio
 async def test_pipeline_visited_urls_deduplication(fast_settings):
-    planner_resp = _make_llm_response(PLANNER_JSON)
-    evaluator_resp = _make_llm_response(EVALUATOR_SUFFICIENT_JSON)
     reporter_resp = _make_llm_response(REPORTER_MARKDOWN)
     same_url = "https://same-url.com"
     search_results = [make_search_result(same_url)]
@@ -152,9 +156,13 @@ async def test_pipeline_visited_urls_deduplication(fast_settings):
     initial_state = ResearchState(query="What is quantum computing?")
 
     with (
-        patch("mini_research.agents.planner.complete", new=AsyncMock(return_value=planner_resp)),
         patch(
-            "mini_research.agents.evaluator.complete", new=AsyncMock(return_value=evaluator_resp)
+            "mini_research.agents.planner.complete_structured",
+            new=AsyncMock(return_value=PLANNER_RESULT),
+        ),
+        patch(
+            "mini_research.agents.evaluator.complete_structured",
+            new=AsyncMock(return_value=EVALUATOR_SUFFICIENT),
         ),
         patch("mini_research.agents.reporter.complete", new=AsyncMock(return_value=reporter_resp)),
         patch("mini_research.graph.search_tool", new=AsyncMock(return_value=search_results)),
@@ -169,8 +177,6 @@ async def test_pipeline_visited_urls_deduplication(fast_settings):
 
 @pytest.mark.asyncio
 async def test_pipeline_tracker_forwarded_to_agents(fast_settings):
-    planner_resp = _make_llm_response(PLANNER_JSON)
-    evaluator_resp = _make_llm_response(EVALUATOR_SUFFICIENT_JSON)
     reporter_resp = _make_llm_response(REPORTER_MARKDOWN)
     search_results = [make_search_result("https://example.com")]
     facts = {"https://example.com": make_fact("https://example.com")}
@@ -181,10 +187,12 @@ async def test_pipeline_tracker_forwarded_to_agents(fast_settings):
 
     with (
         patch(
-            "mini_research.agents.planner.complete", new=AsyncMock(return_value=planner_resp)
-        ) as mock_planner_complete,
+            "mini_research.agents.planner.complete_structured",
+            new=AsyncMock(return_value=PLANNER_RESULT),
+        ) as mock_planner_cs,
         patch(
-            "mini_research.agents.evaluator.complete", new=AsyncMock(return_value=evaluator_resp)
+            "mini_research.agents.evaluator.complete_structured",
+            new=AsyncMock(return_value=EVALUATOR_SUFFICIENT),
         ),
         patch("mini_research.agents.reporter.complete", new=AsyncMock(return_value=reporter_resp)),
         patch("mini_research.graph.search_tool", new=AsyncMock(return_value=search_results)),
@@ -195,5 +203,5 @@ async def test_pipeline_tracker_forwarded_to_agents(fast_settings):
     ):
         await graph.ainvoke(initial_state)
 
-    _, kwargs = mock_planner_complete.call_args
+    _, kwargs = mock_planner_cs.call_args
     assert kwargs.get("tracker") is tracker

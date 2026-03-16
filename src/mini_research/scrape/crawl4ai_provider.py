@@ -8,7 +8,7 @@ class Crawl4aiProvider:
             from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
         except ImportError as e:
             raise ScrapeError("crawl4ai is not installed (pip install crawl4ai)") from e
-        
+
         browser_config = BrowserConfig(verbose=False)
         run_config = CrawlerRunConfig(verbose=False, log_console=False)
         async with AsyncWebCrawler(config=browser_config) as crawler:

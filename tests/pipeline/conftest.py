@@ -1,35 +1,28 @@
 import pytest
 
+from mini_research.agents.evaluator import EvaluatorResult
+from mini_research.agents.planner import PlannerResult
 from mini_research.config import Settings
 from mini_research.llm.models import LLMResponse
 from mini_research.search.models import SearchResult
 from mini_research.state import Fact
 
-PLANNER_JSON = """```json
-{
-  "enriched_query": "What is quantum computing and how does it work?",
-  "sub_queries": [
-    "quantum computing fundamentals",
-    "quantum vs classical computing"
-  ]
-}
-```"""
+PLANNER_RESULT = PlannerResult(
+    enriched_query="What is quantum computing and how does it work?",
+    sub_queries=["quantum computing fundamentals", "quantum vs classical computing"],
+)
 
-EVALUATOR_SUFFICIENT_JSON = """```json
-{
-  "sufficient": true,
-  "new_queries": [],
-  "reasoning": "Sufficient coverage gathered."
-}
-```"""
+EVALUATOR_SUFFICIENT = EvaluatorResult(
+    sufficient=True,
+    new_queries=[],
+    reasoning="Sufficient coverage gathered.",
+)
 
-EVALUATOR_INSUFFICIENT_JSON = """```json
-{
-  "sufficient": false,
-  "new_queries": ["quantum error correction"],
-  "reasoning": "Need more coverage."
-}
-```"""
+EVALUATOR_INSUFFICIENT = EvaluatorResult(
+    sufficient=False,
+    new_queries=["quantum error correction"],
+    reasoning="Need more coverage.",
+)
 
 REPORTER_MARKDOWN = """# Quantum Computing Research Report
 
