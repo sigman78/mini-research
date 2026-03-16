@@ -30,11 +30,12 @@ def _build_response(ai_message: AIMessage, resolved_model: str) -> LLMResponse:
     output_tokens = usage.get("output_tokens", 0)
     model_name = (ai_message.response_metadata or {}).get("model", resolved_model)
     try:
-        cost = litellm.completion_cost(
+        input_cost, output_cost = litellm.cost_per_token(
             model=resolved_model,
             prompt_tokens=input_tokens,
             completion_tokens=output_tokens,
         )
+        cost = input_cost + output_cost
     except Exception:
         cost = 0.0
     return LLMResponse(

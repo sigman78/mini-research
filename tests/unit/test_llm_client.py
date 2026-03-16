@@ -44,7 +44,7 @@ async def test_happy_path_maps_fields():
         patch(
             "mini_research.llm.client.ChatLiteLLM.ainvoke", new=AsyncMock(return_value=ai_message)
         ),
-        patch("mini_research.llm.client.litellm.completion_cost", return_value=0.0012),
+        patch("mini_research.llm.client.litellm.cost_per_token", return_value=(0.0012, 0.0)),
     ):
         response = await complete(MESSAGES, model="openai/gpt-4o-mini")
 
@@ -64,7 +64,7 @@ async def test_tracker_add_called():
         patch(
             "mini_research.llm.client.ChatLiteLLM.ainvoke", new=AsyncMock(return_value=ai_message)
         ),
-        patch("mini_research.llm.client.litellm.completion_cost", return_value=0.001),
+        patch("mini_research.llm.client.litellm.cost_per_token", return_value=(0.001, 0.0)),
     ):
         response = await complete(MESSAGES, model="openai/gpt-4o-mini", tracker=tracker)
 
@@ -78,7 +78,7 @@ async def test_no_tracker_no_error():
         patch(
             "mini_research.llm.client.ChatLiteLLM.ainvoke", new=AsyncMock(return_value=ai_message)
         ),
-        patch("mini_research.llm.client.litellm.completion_cost", return_value=0.0),
+        patch("mini_research.llm.client.litellm.cost_per_token", return_value=(0.0, 0.0)),
     ):
         response = await complete(MESSAGES, model="openai/gpt-4o-mini", tracker=None)
 
@@ -103,7 +103,7 @@ async def test_cost_fallback_on_completion_cost_error():
             "mini_research.llm.client.ChatLiteLLM.ainvoke", new=AsyncMock(return_value=ai_message)
         ),
         patch(
-            "mini_research.llm.client.litellm.completion_cost",
+            "mini_research.llm.client.litellm.cost_per_token",
             side_effect=Exception("pricing unavailable"),
         ),
     ):
@@ -119,7 +119,7 @@ async def test_usage_none_tokens_are_zero():
         patch(
             "mini_research.llm.client.ChatLiteLLM.ainvoke", new=AsyncMock(return_value=ai_message)
         ),
-        patch("mini_research.llm.client.litellm.completion_cost", return_value=0.0),
+        patch("mini_research.llm.client.litellm.cost_per_token", return_value=(0.0, 0.0)),
     ):
         response = await complete(MESSAGES, model="openai/gpt-4o-mini")
 
@@ -174,7 +174,7 @@ async def test_complete_structured_tracker_called():
         patch(
             "mini_research.llm.client.ChatLiteLLM.with_structured_output", return_value=mock_chain
         ),
-        patch("mini_research.llm.client.litellm.completion_cost", return_value=0.0005),
+        patch("mini_research.llm.client.litellm.cost_per_token", return_value=(0.0005, 0.0)),
     ):
         await complete_structured(
             MESSAGES, PlannerResult, model="openai/gpt-4o-mini", tracker=tracker
