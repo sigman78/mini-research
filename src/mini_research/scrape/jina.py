@@ -7,6 +7,8 @@ JINA_BASE = "https://r.jina.ai"
 
 
 class JinaProvider:
+    name = "jina"
+
     async def scrape(self, url: str) -> ScrapeResult:
         jina_url = f"{JINA_BASE}/{url}"
         async with httpx.AsyncClient() as client:

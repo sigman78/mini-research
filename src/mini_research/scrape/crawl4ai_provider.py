@@ -3,6 +3,8 @@ from .models import ScrapeResult
 
 
 class Crawl4aiProvider:
+    name = "crawl4ai"
+
     async def scrape(self, url: str) -> ScrapeResult:
         try:
             from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig

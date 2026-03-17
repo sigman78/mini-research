@@ -1,12 +1,17 @@
 import httpx
 
+from ..config import Settings
 from .errors import SearchError
 from .models import SearchResult
 
 
 class BraveProvider:
-    def __init__(self, api_key: str):
-        self._api_key = api_key
+    name = "brave"
+
+    def __init__(self, settings: Settings | None = None) -> None:
+        if not settings or not settings.brave_api_key:
+            raise SearchError("brave_api_key not configured")
+        self._api_key = settings.brave_api_key
 
     async def search(self, query: str, max_results: int) -> list[SearchResult]:
         headers = {

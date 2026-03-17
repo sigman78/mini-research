@@ -6,6 +6,8 @@ from .models import ScrapeResult
 
 
 class TrafilaturaProvider:
+    name = "trafilatura"
+
     async def scrape(self, url: str) -> ScrapeResult:
         html = await asyncio.to_thread(trafilatura.fetch_url, url)
         text = ""

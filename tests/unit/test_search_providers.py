@@ -52,7 +52,7 @@ async def test_brave_maps_fields():
             json={"web": {"results": [{"title": "T", "url": "https://b.com", "description": "D"}]}},
         )
     )
-    provider = BraveProvider(api_key="testkey")
+    provider = BraveProvider(settings=Settings(brave_api_key="testkey"))
     results = await provider.search("query", max_results=5)
     assert len(results) == 1
     assert results[0] == SearchResult(title="T", url="https://b.com", snippet="D")
@@ -62,7 +62,7 @@ async def test_brave_maps_fields():
 @respx.mock
 async def test_brave_raises_on_http_error():
     respx.get("https://api.search.brave.com/res/v1/web/search").mock(return_value=Response(401))
-    provider = BraveProvider(api_key="testkey")
+    provider = BraveProvider(settings=Settings(brave_api_key="testkey"))
     with pytest.raises(SearchError):
         await provider.search("query", max_results=5)
 

@@ -1,4 +1,5 @@
 import asyncio
+import functools
 
 from ..config import Settings
 from .brave import BraveProvider
@@ -6,6 +7,13 @@ from .duckduckgo import DuckDuckGoProvider
 from .errors import SearchError
 from .models import SearchResult
 from .reddit import RedditProvider
+
+_PROVIDERS = [DuckDuckGoProvider, BraveProvider, RedditProvider]
+
+
+@functools.cache
+def _registry() -> dict[str, type]:
+    return {cls.name: cls for cls in _PROVIDERS}
 
 
 async def search(
@@ -21,20 +29,9 @@ async def search(
 
     await asyncio.sleep(settings.search_delay_seconds)
 
-    dispatch = {
-        "duckduckgo": lambda: DuckDuckGoProvider(),
-        "brave": lambda: _get_brave(settings),
-        "reddit": lambda: RedditProvider(),
-    }
-
-    if resolved_provider not in dispatch:
+    registry = _registry()
+    if resolved_provider not in registry:
         raise SearchError(f"unknown provider: {resolved_provider}")
 
-    instance = dispatch[resolved_provider]()
+    instance = registry[resolved_provider](settings)
     return await instance.search(query, resolved_max)
-
-
-def _get_brave(settings: Settings) -> BraveProvider:
-    if not settings.brave_api_key:
-        raise SearchError("brave_api_key not configured")
-    return BraveProvider(api_key=settings.brave_api_key)
