@@ -1,9 +1,9 @@
+from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from ..config import Settings
 from ..llm.client import complete_structured
 from ..llm.cost import CostTracker
-from ..llm.models import Message
 from ..state import ResearchState
 from .prompts import load_prompt
 
@@ -39,8 +39,5 @@ async def run_evaluator(
         searched_queries=searched or "None yet.",
         facts_summary=summary,
     )
-    messages = [
-        Message(role="system", content=system_prompt),
-        Message(role="user", content=user_prompt),
-    ]
+    messages = [SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)]
     return await complete_structured(messages, EvaluatorResult, settings=settings, tracker=tracker)

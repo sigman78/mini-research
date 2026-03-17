@@ -1,12 +1,12 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
 from mini_research.agents.planner import PlannerResult
 from mini_research.llm.client import LLMError, complete, complete_structured
 from mini_research.llm.cost import CostTracker
-from mini_research.llm.models import LLMResponse, Message
+from mini_research.llm.models import LLMResponse
 
 
 def _make_ai_message(
@@ -32,7 +32,7 @@ def _make_ai_message(
     )
 
 
-MESSAGES = [Message(role="user", content="hi")]
+MESSAGES = [HumanMessage(content="hi")]
 
 
 @pytest.mark.asyncio

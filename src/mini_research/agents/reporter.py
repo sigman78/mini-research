@@ -1,7 +1,8 @@
+from langchain_core.messages import HumanMessage, SystemMessage
+
 from ..config import Settings
 from ..llm.client import complete
 from ..llm.cost import CostTracker
-from ..llm.models import Message
 from ..state import ResearchState
 from .prompts import load_prompt
 
@@ -24,9 +25,6 @@ async def run_reporter(
     facts = _format_facts(state)
     system_prompt = load_prompt("reporter_system")
     user_prompt = load_prompt("reporter_user", query=state.query, facts=facts)
-    messages = [
-        Message(role="system", content=system_prompt),
-        Message(role="user", content=user_prompt),
-    ]
+    messages = [SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)]
     response = await complete(messages, settings=settings, tracker=tracker)
     return response.text

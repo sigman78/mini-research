@@ -2,10 +2,11 @@ import asyncio
 from pathlib import Path
 
 import typer
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from rich.console import Console
 
 from mini_research.config import Settings
-from mini_research.llm import CostTracker, Message, complete
+from mini_research.llm import CostTracker, complete
 from mini_research.scrape import ScrapeError
 from mini_research.scrape import scrape as _scrape
 from mini_research.search import SearchError
@@ -131,10 +132,10 @@ def chat(
 ) -> None:
     prompt = _resolve(prompt)
     system = _resolve(system) if system else None
-    messages: list[Message] = []
+    messages: list[BaseMessage] = []
     if system:
-        messages.append(Message(role="system", content=system))
-    messages.append(Message(role="user", content=prompt))
+        messages.append(SystemMessage(content=system))
+    messages.append(HumanMessage(content=prompt))
     tracker = CostTracker()
     response = asyncio.run(complete(messages, model=model, tracker=tracker))
     console.print(response.text)

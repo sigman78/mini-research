@@ -1,27 +1,17 @@
 import warnings
 
 import litellm
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, BaseMessage
 from langchain_litellm import ChatLiteLLM
 from pydantic import BaseModel
 
 from ..config import Settings
 from .cost import CostTracker
-from .models import LLMResponse, Message
-
-_ROLE_MAP = {
-    "system": SystemMessage,
-    "user": HumanMessage,
-    "assistant": AIMessage,
-}
+from .models import LLMResponse
 
 
 class LLMError(Exception):
     pass
-
-
-def _to_lc_messages(messages: list[Message]) -> list:
-    return [_ROLE_MAP.get(m.role, HumanMessage)(content=m.content) for m in messages]
 
 
 def _build_response(ai_message: AIMessage, resolved_model: str) -> LLMResponse:
@@ -48,7 +38,7 @@ def _build_response(ai_message: AIMessage, resolved_model: str) -> LLMResponse:
 
 
 async def complete(
-    messages: list[Message],
+    messages: list[BaseMessage],
     model: str | None = None,
     settings: Settings | None = None,
     tracker: CostTracker | None = None,
@@ -60,7 +50,7 @@ async def complete(
     try:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", "Pydantic serializer warnings", UserWarning)
-            ai_message: AIMessage = await llm.ainvoke(_to_lc_messages(messages))
+            ai_message: AIMessage = await llm.ainvoke(messages)
     except Exception as exc:
         raise LLMError(str(exc)) from exc
     response = _build_response(ai_message, resolved_model)
@@ -70,7 +60,7 @@ async def complete(
 
 
 async def complete_structured[T: BaseModel](
-    messages: list[Message],
+    messages: list[BaseMessage],
     schema: type[T],
     model: str | None = None,
     settings: Settings | None = None,
@@ -84,7 +74,7 @@ async def complete_structured[T: BaseModel](
     try:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", "Pydantic serializer warnings", UserWarning)
-            result = await chain.ainvoke(_to_lc_messages(messages))
+            result = await chain.ainvoke(messages)
     except Exception as exc:
         raise LLMError(str(exc)) from exc
     if result.get("parsing_error"):

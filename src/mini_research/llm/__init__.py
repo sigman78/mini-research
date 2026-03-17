@@ -1,5 +1,5 @@
-from .client import LLMError, complete
+from .client import LLMError, complete, complete_structured
 from .cost import CostTracker
-from .models import LLMResponse, Message
+from .models import LLMResponse
 
-__all__ = ["complete", "LLMError", "CostTracker", "LLMResponse", "Message"]
+__all__ = ["complete", "complete_structured", "LLMError", "CostTracker", "LLMResponse"]
